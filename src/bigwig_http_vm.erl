@@ -11,9 +11,9 @@ init({tcp, http}, Req, _Opts) ->
     {ok, Req, undefined_state}.
 
 handle(Req, State) ->
-    Body = jsx:term_to_json(all()),
+    Body = jsx:encode(all()),
     Headers = [{<<"Content-Type">>, <<"application/json">>}],
-    {ok, Req2} = cowboy_http_req:reply(200, Headers, Body, Req),
+    {ok, Req2} = cowboy_req:reply(200, Headers, Body, Req),
     {ok, Req2, State}.
 
 terminate(_Req, _State) ->
@@ -24,6 +24,7 @@ all() ->
     [{system_info, system_info()},
      {releases,    releases()},
      {applications,applications()}].
+
 
 
 %% Funs to load data about aspects of the system, mochiJSON formatted:
@@ -69,16 +70,27 @@ applications() ->
 
     Format  = fun(AppList) ->
                       [ [
-                            {name, Name},
+                            {name, atom_to_binary(Name, 'utf8')},
                             {description, list_to_binary(Desc)},
                             {version,     list_to_binary(Ver)} ]
                     || {Name, Desc, Ver} <- AppList
                  ]
               end,
 
+
+
     [
         {running, Format(Which)},
-        {loaded,  Format(Loaded)}
+        {loaded, Format(Loaded)}
     ].
+
+
+
+
+
+
+
+
+
 
 

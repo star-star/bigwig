@@ -15,7 +15,7 @@ init({tcp, http}, Req, OnlyFile) ->
   {ok, Req, OnlyFile}.
 
 handle(Req, undefined_state = State) ->
-  {[_|Path], Req2} = cowboy_http_req:path(Req), % strip <<"static">>
+  {Path, Req2} = cowboy_req:path_info(Req),
   send(Req2, Path, State);
 
 handle(Req, OnlyFile = State) ->
@@ -26,10 +26,10 @@ send(Req, PathBins, State) ->
   case file(filename:join(Path)) of
     {ok, Body} ->
       Headers = [{<<"Content-Type">>, <<"text/html">>}],
-      {ok, Req2} = cowboy_http_req:reply(200, Headers, Body, Req),
+      {ok, Req2} = cowboy_req:reply(200, Headers, Body, Req),
       {ok, Req2, State};
     _ ->
-      {ok, Req2} = cowboy_http_req:reply(404, [], <<"404'd">>, Req),
+      {ok, Req2} = cowboy_req:reply(404, [], <<"404'd">>, Req),
       {ok, Req2, State}
   end.
 

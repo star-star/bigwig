@@ -9,8 +9,8 @@ init({tcp, http}, Req, _Opts) ->
     {ok, Req, undefined_state}.
 
 handle(Req0, State) ->
-    {Path, Req} = cowboy_http_req:path(Req0),
-    {Method, Req1} = cowboy_http_req:method(Req),
+    {Path, Req} = cowboy_req:path_info(Req0),
+    {Method, Req1} = cowboy_req:method(Req),
     handle_path(Method, Path, Req1, State).
 
 handle_path('GET', [<<"top">>], Req, State) ->

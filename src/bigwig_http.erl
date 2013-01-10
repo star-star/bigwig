@@ -51,10 +51,7 @@ init([]) ->
     error_logger:info_msg("Bigwig listening on http://~s:~B/~n", [IpStr,Port]),
     %%
     %% Name, NbAcceptors, Transport, TransOpts, Protocol, ProtoOpts
-    cowboy:start_listener(http, NumAcceptors,
-        cowboy_tcp_transport, [{port, Port}],
-        cowboy_http_protocol, [{dispatch, dispatch_rules()}]
-    ),
+    cowboy:start_http(http, NumAcceptors, [{port, Port}], [{env, [{dispatch, dispatch_rules()}]}]),
 
     {ok, #state{}}.
 

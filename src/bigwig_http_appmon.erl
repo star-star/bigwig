@@ -13,37 +13,40 @@ init({tcp, http}, Req, _Opts) ->
     {ok, Req, undefined_state}.
 
 handle(Req0, State) ->
-    {Path, Req} = cowboy_http_req:path(Req0),
-    {Method, Req1} = cowboy_http_req:method(Req),
+    {Path, Req} = cowboy_req:path(Req0),
+    {Method, Req1} = cowboy_req:method(Req),
     handle_path(Method, Path, Req1, State).
 
 handle_path('GET', [<<"appmon">>, <<"_all">>], Req, State) ->
+    io:format("==================1~n"),
     {ok, RawApps} = bigwig_appmon_info:node_apps(),
     Info =
         [{?P2B(Pid),
-          [{name, App},
+        [{name, atom_to_binary(App, 'utf-8')},
            {desc, ?L2B(Desc)},
            {ver, ?L2B(Ver)}]} || {Pid, _, {App, Desc, Ver}} <- RawApps],
-    Body = jsx:term_to_json(Info),
+    Body = jsx:encode(Info),
     Headers = [{<<"Content-Type">>, <<"application/json">>}],
-    {ok, Req2} = cowboy_http_req:reply(200, Headers, Body, Req),
+    {ok, Req2} = cowboy_req:reply(200, Headers, Body, Req),
     {ok, Req2, State};
 handle_path('GET', [<<"appmon">>, App0], Req, State) ->
+    io:format("==================2~n"),
     case ?B2EA(App0) of
         App when is_atom(App) ->
             {ok, Info} = bigwig_appmon_info:calc_app_tree(App),
-            Body = jsx:term_to_json(Info),
+            Body = jsx:encode(Info),
             Headers = [{<<"Content-Type">>, <<"application/json">>}],
-            {ok, Req2} = cowboy_http_req:reply(200, Headers, Body, Req),
+            {ok, Req2} = cowboy_req:reply(200, Headers, Body, Req),
             {ok, Req2, State};
         _ ->
             not_found(Req, State)
     end;
 handle_path(_, _, Req, State) ->
+    io:format("==================3~n"),
     not_found(Req, State).
 
 not_found(Req, State) ->
-    {ok, Req2} = cowboy_http_req:reply(404, [], <<"<h1>404</h1>">>, Req),
+    {ok, Req2} = cowboy_req:reply(404, [], <<"<h1>404</h1>">>, Req),
     {ok, Req2, State}.
 
 terminate(_Req, _State) ->
